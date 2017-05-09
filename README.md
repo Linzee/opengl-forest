@@ -1,8 +1,13 @@
-OpenGL scene of forest. Features used:
+OpenGL scene of forest. It uses many different features like:
 - Object instantiation (trees, bushes, grass)
-- Reflection on water
-- 
- 
+- Water shader with reflection
+- Trees moving in wind
+- Day-night cycle
+- Triplanar terrain shader
+- Terrain mesh generated from heightmap
+- Multiple lights
+- First person camera controller
+
 ## Pictures
 
 ![Screenshot 1](media/sc0001.jpg)
