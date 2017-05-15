@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <random>
+#include <sstream>
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -82,22 +83,16 @@ struct Material
 Material material;
 GLuint material_ubo;
 
-static const int TREE_COUNT = 40;
+static const int TREE_COUNT = 100;
 static const int GRASS_COUNT = 1000;
 struct TreeData
 {
 	glm::mat4 tree_model_matrix[GRASS_COUNT];
 };
 TreeData tree_data;
-TreeData bush_data;
-TreeData long_grass1_data;
-TreeData long_grass2_data;
-TreeData long_grass3_data;
 GLuint tree_data_ubo;
 GLuint bush_data_ubo;
-GLuint long_grass1_data_ubo;
-GLuint long_grass2_data_ubo;
-GLuint long_grass3_data_ubo;
+GLuint long_grass_data_ubo[12];
 
 GLuint reflection_framebuffer;
 GLuint reflection_tex;
@@ -119,9 +114,7 @@ GLuint tree_program;
 
 PV112::Geometry tree_geometry;
 PV112::Geometry bush_geometry;
-PV112::Geometry long_grass1_geometry;
-PV112::Geometry long_grass2_geometry;
-PV112::Geometry long_grass3_geometry;
+PV112::Geometry long_grass_geometry[12];
 PV112::Geometry lamp_geometry;
 
 GLuint tree_tex;
@@ -129,6 +122,7 @@ GLuint bush_tex;
 GLuint long_grass_tex;
 GLint tree_tex_loc;
 GLint tree_model_matrix_loc;
+GLint tree_wind_height_loc;
 GLint tree_app_time_loc;
 
 // Water
@@ -251,9 +245,11 @@ void init()
 	tree_geometry = PV112::LoadOBJ("resources/tree1.obj", position_loc, normal_loc, tex_coord_loc);
 	bush_geometry = PV112::LoadOBJ("resources/bush.obj", position_loc, normal_loc, tex_coord_loc);
 	water_geometry = PV112::CreateGrid(200, position_loc, normal_loc, tex_coord_loc);
-	long_grass1_geometry = PV112::LoadOBJ("resources/grass4.obj", position_loc, normal_loc, tex_coord_loc);
-	long_grass2_geometry = PV112::LoadOBJ("resources/grass2.obj", position_loc, normal_loc, tex_coord_loc);
-	long_grass3_geometry = PV112::LoadOBJ("resources/grass3.obj", position_loc, normal_loc, tex_coord_loc);
+	for (int i = 0; i < 12; ++i) {
+		std::ostringstream buffer;
+		buffer << "resources/grass" << std::to_string(i + 1) << ".obj";
+		long_grass_geometry[i] = PV112::LoadOBJ(buffer.str().c_str(), position_loc, normal_loc, tex_coord_loc);
+	}
 	lamp_geometry = PV112::LoadOBJ("resources/lamp.obj", position_loc, normal_loc, tex_coord_loc);
 
 	my_camera = BlinkCamera(&terrain_geometry, 0.0f, 0.0f);
@@ -299,6 +295,8 @@ void init()
 	tree_tex_loc = glGetUniformLocation(tree_program, "tree_tex");
 
 	tree_model_matrix_loc = glGetUniformLocation(tree_program, "model_matrix");
+
+	tree_wind_height_loc = glGetUniformLocation(tree_program, "wind_height");
 
 	tree_app_time_loc = glGetUniformLocation(tree_program, "app_time");
 
@@ -363,29 +361,19 @@ void init()
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	RandomTrees(terrain_geometry, bush_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return y < 0.5 ? 0.1f : 1.0; });
+	RandomTrees(terrain_geometry, tree_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return y < 0.5 ? 0.1f : 1.0; });
 	glGenBuffers(1, &bush_data_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, bush_data_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(bush_data), &bush_data, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	RandomTrees(terrain_geometry, long_grass1_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.2 ? 0.0 : 1 - y; });
-	glGenBuffers(1, &long_grass1_data_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, long_grass1_data_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(long_grass1_data), &long_grass1_data, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	RandomTrees(terrain_geometry, long_grass2_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.2 ? 0.0 : 1 - y; });
-	glGenBuffers(1, &long_grass2_data_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, long_grass2_data_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(long_grass2_data), &long_grass2_data, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	RandomTrees(terrain_geometry, long_grass3_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.2 ? 0.0 : 1 - y; });
-	glGenBuffers(1, &long_grass3_data_ubo);
-	glBindBuffer(GL_UNIFORM_BUFFER, long_grass3_data_ubo);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(long_grass3_data), &long_grass3_data, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	for (int i = 0; i < 12; ++i) {
+		RandomTrees(terrain_geometry, tree_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.1 ? 0.0 : 1 - y; });
+		glGenBuffers(1, &long_grass_data_ubo[i]);
+		glBindBuffer(GL_UNIFORM_BUFFER, long_grass_data_ubo[i]);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
 
 	// Grass texture
 	terrain_grass_tex = PV112::CreateAndLoadTexture(MAYBEWIDE("resources/grass.png"));
@@ -672,6 +660,8 @@ void renderTrees() {
 
 	glBindVertexArray(tree_geometry.VAO);
 
+	glUniform1f(tree_wind_height_loc, 15.0);
+
 	glUniform1i(tree_tex_loc, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tree_tex);
@@ -683,6 +673,8 @@ void renderTrees() {
 	
 	glBindVertexArray(bush_geometry.VAO);
 
+	glUniform1f(tree_wind_height_loc, 10.0);
+
 	glUniform1i(tree_tex_loc, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, bush_tex);
@@ -690,24 +682,20 @@ void renderTrees() {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, bush_data_ubo);
 
 	PV112::DrawGeometryInstanced(bush_geometry, TREE_COUNT);
-	
+
+
+	glUniform1f(tree_wind_height_loc, 2.0);
+
 	glUniform1i(tree_tex_loc, 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, long_grass_tex);
 
-	glBindVertexArray(long_grass1_geometry.VAO);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, long_grass1_data_ubo);
-	PV112::DrawGeometryInstanced(long_grass1_geometry, GRASS_COUNT);
+	for (int i = 0; i < 12; ++i) {
+		glBindVertexArray(long_grass_geometry[i].VAO);
+		glBindBufferBase(GL_UNIFORM_BUFFER, 3, long_grass_data_ubo[i]);
+		PV112::DrawGeometryInstanced(long_grass_geometry[i], GRASS_COUNT);
+	}
 
-	glBindVertexArray(long_grass3_geometry.VAO);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, long_grass3_data_ubo);
-	PV112::DrawGeometryInstanced(long_grass3_geometry, GRASS_COUNT);
-
-	glBindVertexArray(long_grass2_geometry.VAO);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 3, long_grass2_data_ubo);
-	PV112::DrawGeometryInstanced(long_grass2_geometry, GRASS_COUNT);
-
-	
 	glDisable(GL_BLEND);
 }
 
