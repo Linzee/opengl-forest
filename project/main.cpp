@@ -355,20 +355,20 @@ void init()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// Tree locations buffer
-	RandomTrees(terrain_geometry, tree_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return 1.0; });
+	RandomTrees(terrain_geometry, tree_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return y < 0.2 ? 0.0 : y; });
 	glGenBuffers(1, &tree_data_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, tree_data_ubo);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	RandomTrees(terrain_geometry, tree_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return y < 0.5 ? 0.1f : 1.0; });
+	RandomTrees(terrain_geometry, tree_data.tree_model_matrix, TREE_COUNT, [](float x, float y, float z) { return y < 0.3 ? 0.0f : 1.0; });
 	glGenBuffers(1, &bush_data_ubo);
 	glBindBuffer(GL_UNIFORM_BUFFER, bush_data_ubo);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	for (int i = 0; i < 12; ++i) {
-		RandomTrees(terrain_geometry, tree_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.1 ? 0.0 : 1 - y; });
+		RandomTrees(terrain_geometry, tree_data.tree_model_matrix, GRASS_COUNT, [](float x, float y, float z) { return y < 0.15 ? 0.02 : 1 - y/2; });
 		glGenBuffers(1, &long_grass_data_ubo[i]);
 		glBindBuffer(GL_UNIFORM_BUFFER, long_grass_data_ubo[i]);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(tree_data), &tree_data, GL_STATIC_DRAW);
@@ -501,7 +501,7 @@ void render()
 	lights.lights[0].ambient_color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f) * day_time;
 	lights.lights[0].size = glm::vec4(10000.0f, 10000.0f, 10000.0f, 1.0f);
 	
-	lights.lights[1].position = glm::vec4(0.0f, terrain_geometry.height[128][128] * 32.0f - 2.0f + 5.6f, 0.0f, 1.0f);
+	lights.lights[1].position = glm::vec4(-10.0f, terrain_geometry.height[103][103] * TERRAIN_HEIGHT - 2.0f + 5.6f, -10.0f, 1.0f);
 	lights.lights[1].diffuse_color = glm::vec4(3 * 1.00f, 3 * 0.98f, 3 * 0.56f, 1.0f) * (1 - day_time);
 	lights.lights[1].ambient_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) * (1 - day_time);
 	lights.lights[1].size = glm::vec4(20.0f, 20.0f, 20.0f, 1.0f);
@@ -586,7 +586,7 @@ void renderTerrain() {
 
 	glm::mat4 model_matrix(1.0f);
 	model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, -2.0f, 0.0f));
-	model_matrix = glm::scale(model_matrix, glm::vec3(100.0f, 32.0f, 100.0f));
+	model_matrix = glm::scale(model_matrix, glm::vec3(100.0f, TERRAIN_HEIGHT, 100.0f));
 	glUniformMatrix4fv(terrain_model_matrix_loc, 1, GL_FALSE, glm::value_ptr(model_matrix));
 
 	glUniform1i(terrain_grass_tex_loc, 0);
@@ -619,7 +619,7 @@ void renderLamp() {
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	glm::mat4 model_matrix(1.0f);
-	model_matrix = glm::translate(model_matrix, glm::vec3(0.0f, terrain_geometry.height[128][128] * 32.0f - 2.0f, 0.0f));
+	model_matrix = glm::translate(model_matrix, glm::vec3(-10.0f, terrain_geometry.height[103][103] * TERRAIN_HEIGHT - 2.0f, -10.0f));
 	model_matrix = glm::scale(model_matrix, glm::vec3(1.0f, 1.0f, 1.0f));
 	glUniformMatrix4fv(terrain_model_matrix_loc, 1, GL_FALSE, glm::value_ptr(model_matrix));
 

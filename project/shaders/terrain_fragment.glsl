@@ -58,7 +58,7 @@ void main()
 		m = 1;
 	}
 
-	if (m < 0.70) {
+	if (m < 0.7) {
 		tex_color_y = texture(grass_tex, inData.position_ws.xz * texture_scale).rgb;
 		tex_color_x = texture(grass_tex, inData.position_ws.zy * texture_scale).rgb;
 		tex_color_z = texture(grass_tex, inData.position_ws.xy * texture_scale).rgb;

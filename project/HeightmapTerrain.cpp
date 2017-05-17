@@ -250,7 +250,7 @@ void RandomTrees(const Terrain& terrain_geometry, glm::mat4* tree_model_matrixes
 		}
 
 		glm::mat4 mat(1.0);
-		mat = glm::translate(mat, glm::vec3(x, y * 32.0f, z));
+		mat = glm::translate(mat, glm::vec3(x, y * TERRAIN_HEIGHT, z));
 		mat = glm::rotate(mat, -tan(y1 - terrain_geometry.height[xdata + 1][zdata]), glm::vec3(0.0, 0.0, 1.0));
 		mat = glm::rotate(mat, -tan(y1 - terrain_geometry.height[xdata][zdata + 1]), glm::vec3(1.0, 0.0, 0.0));
 		mat = glm::rotate(mat, static_cast<float>(disAngle(gen)), glm::vec3(0.0, 1.0, 0.0));
@@ -292,7 +292,7 @@ float BlinkCamera::get_height(float x, float z) {
 	int zi = static_cast<int>(round((eye_position.z / 50) * 128)) + 128;
 	xi = std::max(std::min(xi, 255), 0);
 	zi = std::max(std::min(zi, 255), 0);
-	return terrain->height[xi][zi] * 32.0f;
+	return terrain->height[xi][zi] * TERRAIN_HEIGHT;
 }
 
 void BlinkCamera::OnMouseMoved(int dx, int dy)

@@ -9,6 +9,8 @@
 #include <algorithm>
 #include "PV112.h"
 
+static const float TERRAIN_HEIGHT = 15.0f;
+
 class Terrain : public PV112::Geometry {
 public:
 	std::vector<std::vector<float>> height;

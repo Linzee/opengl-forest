@@ -1,0 +1,15 @@
+<!DOCTYPE FilterScript>
+<FilterScript>
+ <filter name="Turn into a Pure-Triangular mesh"/>
+ <filter name="Transform: Scale, Normalize">
+  <Param name="axisX" type="RichFloat" tooltip="Scaling" description="X Axis" value="0.03"/>
+  <Param name="axisY" type="RichFloat" tooltip="Scaling" description="Y Axis" value="0.03"/>
+  <Param name="axisZ" type="RichFloat" tooltip="Scaling" description="Z Axis" value="0.03"/>
+  <Param name="uniformFlag" type="RichBool" tooltip="If selected an uniform scaling (the same for all the three axis) is applied (the X axis value is used)" description="Uniform Scaling" value="true"/>
+  <Param name="scaleCenter" enum_val2="custom point" enum_cardinality="3" enum_val1="barycenter" enum_val0="origin" type="RichEnum" tooltip="Choose a method" description="Center of scaling:" value="0"/>
+  <Param y="0" name="customCenter" x="0" type="RichPoint3f" z="0" tooltip="This scaling center is used only if the 'custom point' option is chosen." description="Custom center"/>
+  <Param name="unitFlag" type="RichBool" tooltip="If selected, the object is scaled to a box whose sides are at most 1 unit lenght" description="Scale to Unit bbox" value="false"/>
+  <Param name="Freeze" type="RichBool" tooltip="The transformation is explicitly applied, and the vertex coordinates are actually changed" description="Freeze Matrix" value="true"/>
+  <Param name="allLayers" type="RichBool" tooltip="If selected the filter will be applied to all visible mesh layers" description="Apply to all visible Layers" value="false"/>
+ </filter>
+</FilterScript>
